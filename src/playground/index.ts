@@ -2,16 +2,15 @@ import * as dgram from 'dgram';
 import {constants, F1TelemetryClient} from '..';
 
 const {PACKETS} = constants;
-const port = Number(process.env.PORT || 20777);
 
 const client = new F1TelemetryClient({
-  port,
-  forwardAddresses: [{port}],
+  port: 20777,
+  forwardAddresses: [{port: 5550}],
   skipParsing: true,
 });
 
 const socket = dgram.createSocket('udp4');
-socket.bind(port);
+socket.bind(5550);
 
 socket.on('message', (msg) => {
   const parsedmsg = F1TelemetryClient.parseBufferMessage(msg);
