@@ -2,7 +2,7 @@ import * as dgram from 'dgram';
 import {constants, F1TelemetryClient} from '..';
 
 const {PACKETS} = constants;
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || 20777);
 
 const client = new F1TelemetryClient({
   port,
