@@ -1,5 +1,5 @@
 {
-  "name": "f1-2021-udp",
+  "name": "f1-2021-udp-team-dudu",
   "version": "1.0.5",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/PrimeGoose/f1-2021-udp"
+    "url": "https://github.com/team-dudu/f1-2021-udp"
   },
   "dependencies": {
     "binary-parser": "^1.5.0",
