@@ -16,8 +16,10 @@ const client = new F1TelemetryClient({
   skipParsing: true,
 });
 
+const start = new Date();
 let last = new Date();
 let sumData = 0;
+let sumDataTotal = 0;
 
 function memorySizeOf(obj: object) {
   let bytes = 0;
@@ -84,6 +86,7 @@ function eventLog(eventName: string) {
     }
 
     sumData += memorySizeOf(msg);
+    sumDataTotal += memorySizeOf(msg);
 
     // console.debug(eventName, ': ', msg);
   };
@@ -102,3 +105,22 @@ client.on(PACKETS.lobbyInfo, eventLog('lobbyInfo'));
 client.on(PACKETS.carDamage, eventLog('carDamage'));
 
 client.start();
+
+// stops the client
+[`exit`,
+ `SIGINT`,
+ `SIGUSR1`,
+ `SIGUSR2`,
+ `uncaughtException`,
+ `SIGTERM`,
+].forEach((eventType) => {
+  (process as NodeJS.EventEmitter).on(eventType, () => {
+    const now = new Date();
+    const elapsedTime: number = now.getTime() - start.getTime();
+    console.info(
+        'data received from beginning (', elapsedTime, ' seconds)',
+        'seconds:', formatByteSize(sumDataTotal), 'around',
+        formatByteSize(sumDataTotal / elapsedTime), 'by seconds');
+    client.stop();
+  });
+});
