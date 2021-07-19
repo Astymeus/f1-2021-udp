@@ -12,8 +12,10 @@
     "url": "https://github.com/team-dudu/f1-2021-udp"
   },
   "dependencies": {
+    "@types/express": "^4.17.13",
     "applicationinsights": "^2.1.4",
     "binary-parser": "^1.5.0",
+    "express": "^4.17.1",
     "struct": "^0.0.12"
   },
   "devDependencies": {
@@ -30,7 +32,8 @@
   },
   "scripts": {
     "prepublishOnly": "npm run build",
-    "start": "node build/src/playground/index.js",
+    "start-server": "node build/src/playground/index.js",
+    "start": "node playground/index.js",
     "build": "tsc",
     "build:link": "npm run build && npm link",
     "type-check:watch": "npm run type-check -- --watch",
