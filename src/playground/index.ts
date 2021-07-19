@@ -73,12 +73,13 @@ function formatByteSize(bytes: number) {
 function eventLog(eventName: string) {
   return function eventLogWithMsg(msg: object) {
     const now = new Date();
-    if (now.getTime() - last.getTime() > ELAPSE_TIME) {
+    const elapsedTime: number = now.getTime() - last.getTime();
+    if (elapsedTime > ELAPSE_TIME) {
       last = now;
       console.info(
-          'data received in last', ELAPSE_TIME,
+          'data received in last', elapsedTime,
           'seconds:', formatByteSize(sumData), 'around',
-          formatByteSize(sumData / ELAPSE_TIME), 'by seconds');
+          formatByteSize(sumData / elapsedTime), 'by seconds');
       sumData = 0;
     }
 
