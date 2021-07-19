@@ -18,7 +18,19 @@ const client = new F1TelemetryClient({
 
 const start = new Date();
 let last = new Date();
-let sumData = 0;
+const sumData: {[eventName: string]: number} = {
+  'event': 0,
+  'motion': 0,
+  'carSetups': 0,
+  'lapData': 0,
+  'session': 0,
+  'participants': 0,
+  'carTelemetry': 0,
+  'carStatus': 0,
+  'finalClassification': 0,
+  'lobbyInfo': 0,
+  'carDamage': 0
+};
 let sumDataTotal = 0;
 
 function memorySizeOf(obj: object) {
@@ -72,39 +84,44 @@ function formatByteSize(bytes: number) {
   }
 }
 
-function eventLog(eventName: string) {
+function eventLog(eventName: string, logConsole: boolean) {
   return function eventLogWithMsg(msg: object) {
-    const now = new Date();
-    const elapsedTime: number = (now.getTime() - last.getTime()) / 1000;
-    if (elapsedTime > ELAPSE_TIME) {
-      last = now;
-      console.info(
-          'data received in last', elapsedTime,
-          'seconds:', formatByteSize(sumData), 'around',
-          formatByteSize(sumData / elapsedTime), 'by seconds');
-      sumData = 0;
-    }
-
-    sumData += memorySizeOf(msg);
+    sumData[eventName] += memorySizeOf(msg);
     sumDataTotal += memorySizeOf(msg);
-
-    // console.debug(eventName, ': ', msg);
+    if (logConsole) {
+      console.debug(eventName, ': ', msg);
+    }
   };
 }
 
-client.on(PACKETS.event, eventLog('event'));
-client.on(PACKETS.motion, eventLog('motion'));
-client.on(PACKETS.carSetups, eventLog('carSetups'));
-client.on(PACKETS.lapData, eventLog('lapData'));
-client.on(PACKETS.session, eventLog('session'));
-client.on(PACKETS.participants, eventLog('participants'));
-client.on(PACKETS.carTelemetry, eventLog('carTelemetry'));
-client.on(PACKETS.carStatus, eventLog('carStatus'));
-client.on(PACKETS.finalClassification, eventLog('finalClassification'));
-client.on(PACKETS.lobbyInfo, eventLog('lobbyInfo'));
-client.on(PACKETS.carDamage, eventLog('carDamage'));
+client.on(PACKETS.event, eventLog('event', false));
+client.on(PACKETS.motion, eventLog('motion', false));
+client.on(PACKETS.carSetups, eventLog('carSetups', false));
+client.on(PACKETS.lapData, eventLog('lapData', false));
+client.on(PACKETS.session, eventLog('session', false));
+client.on(PACKETS.participants, eventLog('participants', false));
+client.on(PACKETS.carTelemetry, eventLog('carTelemetry', false));
+client.on(PACKETS.carStatus, eventLog('carStatus', false));
+client.on(PACKETS.finalClassification, eventLog('finalClassification', false));
+client.on(PACKETS.lobbyInfo, eventLog('lobbyInfo', false));
+client.on(PACKETS.carDamage, eventLog('carDamage', true));
 
 client.start();
+
+const dataSnifferInterval = setInterval(() => {
+  const now = new Date();
+  const elapsedTime: number = (now.getTime() - last.getTime()) / 1000;
+  last = now;
+  for (const eventName of Object.keys(sumData)) {
+    console.info(
+        'data (', eventName, ') received in last', elapsedTime,
+        'seconds:', formatByteSize(sumData[eventName]), 'around',
+        formatByteSize(sumData[eventName] / elapsedTime), 'by seconds');
+    sumData[eventName] = 0;
+  }
+  console.info();
+  console.info();
+}, ELAPSE_TIME * 1000);
 
 // stops the client
 [`exit`,
@@ -118,9 +135,10 @@ client.start();
     const now = new Date();
     const elapsedTime: number = (now.getTime() - start.getTime()) / 1000;
     console.info(
-        'data received from beginning (', elapsedTime, ' seconds)',
+        'data received from beginning (', elapsedTime, 'seconds)',
         'seconds:', formatByteSize(sumDataTotal), 'around',
         formatByteSize(sumDataTotal / elapsedTime), 'by seconds');
+    clearInterval(dataSnifferInterval);
     client.stop();
   });
 });
