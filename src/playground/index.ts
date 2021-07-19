@@ -6,6 +6,10 @@ const ELAPSE_TIME = 10;  // seconds
 
 const {PACKETS} = constants;
 
+interface Data {
+  [key: string]: string|number;
+}
+
 const client = new F1TelemetryClient({
   address,
   port,
@@ -25,7 +29,8 @@ function memorySizeOf(obj: object) {
           bytes += 8;
           break;
         case 'string':
-          bytes += obj.length * 2;
+          const str: string = obj;
+          bytes += str.length * 2;
           break;
         case 'boolean':
           bytes += 4;
@@ -35,10 +40,12 @@ function memorySizeOf(obj: object) {
           if (objClass === 'Object' || objClass === 'Array') {
             for (const key in obj) {
               if (!obj.hasOwnProperty(key)) continue;
+              // @ts-ignore
               sizeOf(obj[key]);
             }
-          } else
+          } else {
             bytes += obj.toString().length * 2;
+          }
           break;
         default:
           break;
@@ -52,14 +59,15 @@ function memorySizeOf(obj: object) {
 }
 
 function formatByteSize(bytes: number) {
-  if (bytes < 1024)
+  if (bytes < 1024) {
     return bytes + ' bytes';
-  else if (bytes < 1048576)
+  } else if (bytes < 1048576) {
     return (bytes / 1024).toFixed(3) + ' KiB';
-  else if (bytes < 1073741824)
+  } else if (bytes < 1073741824) {
     return (bytes / 1048576).toFixed(3) + ' MiB';
-  else
+  } else {
     return (bytes / 1073741824).toFixed(3) + ' GiB';
+  }
 }
 
 function eventLog(eventName: string) {
