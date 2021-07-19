@@ -75,7 +75,7 @@ function formatByteSize(bytes: number) {
 function eventLog(eventName: string) {
   return function eventLogWithMsg(msg: object) {
     const now = new Date();
-    const elapsedTime: number = now.getTime() - last.getTime();
+    const elapsedTime: number = (now.getTime() - last.getTime()) / 1000;
     if (elapsedTime > ELAPSE_TIME) {
       last = now;
       console.info(
@@ -116,7 +116,7 @@ client.start();
 ].forEach((eventType) => {
   (process as NodeJS.EventEmitter).on(eventType, () => {
     const now = new Date();
-    const elapsedTime: number = now.getTime() - start.getTime();
+    const elapsedTime: number = (now.getTime() - start.getTime()) / 1000;
     console.info(
         'data received from beginning (', elapsedTime, ' seconds)',
         'seconds:', formatByteSize(sumDataTotal), 'around',
