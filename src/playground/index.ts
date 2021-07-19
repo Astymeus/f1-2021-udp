@@ -77,7 +77,8 @@ function eventLog(eventName: string) {
       last = now;
       console.info(
           'data received in last', ELAPSE_TIME,
-          'seconds:', formatByteSize(sumData));
+          'seconds:', formatByteSize(sumData), 'around',
+          formatByteSize(sumData / ELAPSE_TIME), 'by seconds');
       sumData = 0;
     }
 
