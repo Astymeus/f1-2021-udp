@@ -1,11 +1,14 @@
-import * as dgram from 'dgram';
-
 import {constants, F1TelemetryClient} from '..';
 
 const address = '0.0.0.0';
 const port = 20777;
+const ELAPSE_TIME = 10;  // seconds
 
 const {PACKETS} = constants;
+
+interface Data {
+  [key: string]: string|number;
+}
 
 const client = new F1TelemetryClient({
   address,
@@ -13,9 +16,79 @@ const client = new F1TelemetryClient({
   skipParsing: true,
 });
 
+const start = new Date();
+let last = new Date();
+let sumData = 0;
+let sumDataTotal = 0;
+
+function memorySizeOf(obj: object) {
+  let bytes = 0;
+
+  function sizeOf(obj: object) {
+    if (obj !== null && obj !== undefined) {
+      switch (typeof obj) {
+        case 'number':
+          bytes += 8;
+          break;
+        case 'string':
+          const str: string = obj;
+          bytes += str.length * 2;
+          break;
+        case 'boolean':
+          bytes += 4;
+          break;
+        case 'object':
+          const objClass = Object.prototype.toString.call(obj).slice(8, -1);
+          if (objClass === 'Object' || objClass === 'Array') {
+            for (const key in obj) {
+              if (!obj.hasOwnProperty(key)) continue;
+              // @ts-ignore
+              sizeOf(obj[key]);
+            }
+          } else {
+            bytes += obj.toString().length * 2;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+    return bytes;
+  }
+
+
+  return sizeOf(obj);
+}
+
+function formatByteSize(bytes: number) {
+  if (bytes < 1024) {
+    return bytes + ' bytes';
+  } else if (bytes < 1048576) {
+    return (bytes / 1024).toFixed(3) + ' KiB';
+  } else if (bytes < 1073741824) {
+    return (bytes / 1048576).toFixed(3) + ' MiB';
+  } else {
+    return (bytes / 1073741824).toFixed(3) + ' GiB';
+  }
+}
+
 function eventLog(eventName: string) {
-  return function eventLogWithMsg(msg: string) {
-    console.log(eventName, msg);
+  return function eventLogWithMsg(msg: object) {
+    const now = new Date();
+    const elapsedTime: number = (now.getTime() - last.getTime()) / 1000;
+    if (elapsedTime > ELAPSE_TIME) {
+      last = now;
+      console.info(
+          'data received in last', elapsedTime,
+          'seconds:', formatByteSize(sumData), 'around',
+          formatByteSize(sumData / elapsedTime), 'by seconds');
+      sumData = 0;
+    }
+
+    sumData += memorySizeOf(msg);
+    sumDataTotal += memorySizeOf(msg);
+
+    // console.debug(eventName, ': ', msg);
   };
 }
 
@@ -32,3 +105,22 @@ client.on(PACKETS.lobbyInfo, eventLog('lobbyInfo'));
 client.on(PACKETS.carDamage, eventLog('carDamage'));
 
 client.start();
+
+// stops the client
+[`exit`,
+ `SIGINT`,
+ `SIGUSR1`,
+ `SIGUSR2`,
+ `uncaughtException`,
+ `SIGTERM`,
+].forEach((eventType) => {
+  (process as NodeJS.EventEmitter).on(eventType, () => {
+    const now = new Date();
+    const elapsedTime: number = (now.getTime() - start.getTime()) / 1000;
+    console.info(
+        'data received from beginning (', elapsedTime, ' seconds)',
+        'seconds:', formatByteSize(sumDataTotal), 'around',
+        formatByteSize(sumDataTotal / elapsedTime), 'by seconds');
+    client.stop();
+  });
+});
