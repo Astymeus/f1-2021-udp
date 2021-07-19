@@ -83,7 +83,7 @@ function eventLog(eventName: string) {
 
     sumData += memorySizeOf(msg);
 
-    console.debug(eventName, ': ', msg);
+    // console.debug(eventName, ': ', msg);
   };
 }
 
