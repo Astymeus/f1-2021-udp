@@ -30,7 +30,8 @@
   },
   "scripts": {
     "prepublishOnly": "npm run build",
-    "start": "node build/src/playground/index.js",
+    "start-server": "node build/src/playground/index.js",
+    "start": "node playground/index.js",
     "build": "tsc",
     "build:link": "npm run build && npm link",
     "type-check:watch": "npm run type-check -- --watch",
