@@ -24,13 +24,13 @@ function eventLog(eventName: string) {
     const now = new Date();
     if (now.getTime() - last.getTime() > ELAPSE_TIME) {
       last = now;
-      console.log('data receive in last ', ELAPSE_TIME, 'seconds: ', sumData);
+      console.info('data receive in last ', ELAPSE_TIME, 'seconds: ', sumData);
       sumData = 0;
     }
 
     sumData += roughSizeOfObject(msg);
 
-    console.trace(eventName, ': ', msg);
+    console.debug(eventName, ': ', msg);
   };
 }
 
