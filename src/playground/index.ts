@@ -32,6 +32,7 @@ const socket = dgram.createSocket('udp4');
 socket.bind(port);
 
 socket.on('message', (msg) => {
+  appInsightsClient.trackTrace({message: 'message'});
   const parsedmsg = F1TelemetryClient.parseBufferMessage(msg);
 
   if(parsedmsg?.packetData?.data===undefined){
@@ -41,5 +42,6 @@ socket.on('message', (msg) => {
   }
 });
 
-appInsightsClient.trackTrace({message: 'Démarrage du client'});
+appInsightsClient.trackTrace(
+    {message: `Démarrage du client on port : ${port}`});
 client.start();
