@@ -1,9 +1,8 @@
-import * as dgram from 'dgram';
-
 import {constants, F1TelemetryClient} from '..';
 
 const address = '0.0.0.0';
 const port = 20777;
+const ELAPSE_TIME = 10;  // seconds
 
 const {PACKETS} = constants;
 
@@ -13,9 +12,25 @@ const client = new F1TelemetryClient({
   skipParsing: true,
 });
 
+let last = new Date();
+let sumData = 0;
+
+function roughSizeOfObject(data: object) {
+  return Object.keys(data).length;
+}
+
 function eventLog(eventName: string) {
-  return function eventLogWithMsg(msg: string) {
-    console.log(eventName, msg);
+  return function eventLogWithMsg(msg: object) {
+    const now = new Date();
+    if (now.getTime() - last.getTime() > ELAPSE_TIME) {
+      last = now;
+      console.log('data receive in last ', ELAPSE_TIME, 'seconds: ', sumData);
+      sumData = 0;
+    }
+
+    sumData += roughSizeOfObject(msg);
+
+    console.trace(eventName, ': ', msg);
   };
 }
 
